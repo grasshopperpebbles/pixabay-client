@@ -1,0 +1,45 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pixabay-client"
+version = "0.1.0"
+description = "A typed Pixabay API client (sync and async) that follows Pixabay's API rules for you: caching, rate limits, downloads and credit."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Les Green" }]
+requires-python = ">=3.10"
+dependencies = ["httpx>=0.27,<1"]
+keywords = ["pixabay", "images", "stock photos", "api", "client", "async"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
+  "Framework :: AsyncIO",
+]
+
+[project.urls]
+Homepage = "https://github.com/grasshopperpebbles/pixabay-client"
+Issues = "https://github.com/grasshopperpebbles/pixabay-client/issues"
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-asyncio>=0.24", "mypy>=1.11"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pixabay_client"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+
+[tool.mypy]
+strict = true
+files = ["src"]
