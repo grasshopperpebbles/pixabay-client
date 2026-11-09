@@ -147,7 +147,8 @@ def check(response: httpx.Response) -> Any:
     low = text.lower()
     if "api key" in low:
         raise AuthError("Invalid or missing Pixabay API key.")
-    if "out of valid range" in low:
+    # Live 2026-11-09: "[ERROR 400] Image #N does not exist." (older answers said "out of valid range").
+    if "does not exist" in low or "out of valid range" in low:
         raise NotFound("Pixabay has no item with that id.")
     raise PixabayError(f"Pixabay error {response.status_code}: {_scrub(text)}")
 

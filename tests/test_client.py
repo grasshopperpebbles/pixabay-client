@@ -65,6 +65,9 @@ def test_get_image_and_not_found(fake: Pixabay, sleeps: list[float]) -> None:
     fake.reply = lambda r: httpx.Response(400, text='[ERROR 400] "id" is out of valid range.')
     with pytest.raises(NotFound):
         c.get_image(999999999)
+    fake.reply = lambda r: httpx.Response(400, text="[ERROR 400] Image #99999999999 does not exist.")  # live wording
+    with pytest.raises(NotFound):
+        c.get_image(99999999999)
 
 
 def test_bad_key_is_auth_error_and_never_shows_the_key(fake: Pixabay, sleeps: list[float]) -> None:
