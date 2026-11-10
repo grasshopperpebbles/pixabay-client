@@ -26,7 +26,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/grasshopperpebbles/pixabay-client"
+Homepage = "https://grasshopperpebbles.com"
+Source = "https://github.com/grasshopperpebbles/pixabay-client"
 Issues = "https://github.com/grasshopperpebbles/pixabay-client/issues"
 
 [project.optional-dependencies]
