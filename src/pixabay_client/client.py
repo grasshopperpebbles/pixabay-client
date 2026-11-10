@@ -126,7 +126,8 @@ class PixabayClient(_Base):
 
     def get_image(self, image_id: int) -> Image:
         data = self._get(API, {"id": str(image_id)})
-        return _core.images_result(data, 1, 1, False).hits[0] if data.get("hits") else _not_found()
+        hits = _core.images_result(data, 1, 1, False).hits
+        return hits[0] if hits else _not_found()
 
     def search_videos(self, q: str | None = None, *, lang: str = "en", video_type: str = "all",
                       category: str | None = None, min_width: int = 0, min_height: int = 0,
@@ -139,7 +140,8 @@ class PixabayClient(_Base):
 
     def get_video(self, video_id: int) -> Video:
         data = self._get(VIDEO_API, {"id": str(video_id)})
-        return _core.videos_result(data, 1, 1).hits[0] if data.get("hits") else _not_found()
+        hits = _core.videos_result(data, 1, 1).hits
+        return hits[0] if hits else _not_found()
 
     def download(self, image: Image, *, size: Size = "large", dest: str | Path | None = None) -> Any:
         """The picture's bytes, or with `dest` saved there (returns the Path). Pixabay forbids permanent
@@ -227,7 +229,8 @@ class AsyncPixabayClient(_Base):
 
     async def get_image(self, image_id: int) -> Image:
         data = await self._get(API, {"id": str(image_id)})
-        return _core.images_result(data, 1, 1, False).hits[0] if data.get("hits") else _not_found()
+        hits = _core.images_result(data, 1, 1, False).hits
+        return hits[0] if hits else _not_found()
 
     async def search_videos(self, q: str | None = None, *, lang: str = "en", video_type: str = "all",
                             category: str | None = None, min_width: int = 0, min_height: int = 0,
@@ -240,7 +243,8 @@ class AsyncPixabayClient(_Base):
 
     async def get_video(self, video_id: int) -> Video:
         data = await self._get(VIDEO_API, {"id": str(video_id)})
-        return _core.videos_result(data, 1, 1).hits[0] if data.get("hits") else _not_found()
+        hits = _core.videos_result(data, 1, 1).hits
+        return hits[0] if hits else _not_found()
 
     async def download(self, image: Image, *, size: Size = "large", dest: str | Path | None = None) -> Any:
         url = _core.download_url(image, size)

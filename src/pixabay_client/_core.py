@@ -175,8 +175,19 @@ def read_rate_limit(response: httpx.Response, now: float) -> RateLimit | None:
         return None
 
 
+def _parse(make: Callable[[dict[str, Any]], Any], raw: Any) -> list[Any]:
+    """Each hit that reads cleanly; one malformed hit is skipped, not fatal to the whole answer."""
+    out = []
+    for h in raw if isinstance(raw, list) else []:
+        try:
+            out.append(make(h))
+        except (KeyError, TypeError, ValueError, AttributeError):
+            continue
+    return out
+
+
 def images_result(data: dict[str, Any], page: int, per_page: int, exclude_people: bool) -> SearchResult[Image]:
-    hits = [Image.from_api(h) for h in data.get("hits", [])]
+    hits: list[Image] = _parse(Image.from_api, data.get("hits"))
     if exclude_people:
         hits = [h for h in hits if not PEOPLE_TAGS.intersection(t.lower() for t in h.tags)]
     return SearchResult(int(data.get("total", 0)), int(data.get("totalHits", 0)), hits, page, per_page)
@@ -184,7 +195,7 @@ def images_result(data: dict[str, Any], page: int, per_page: int, exclude_people
 
 def videos_result(data: dict[str, Any], page: int, per_page: int) -> SearchResult[Video]:
     return SearchResult(int(data.get("total", 0)), int(data.get("totalHits", 0)),
-                        [Video.from_api(h) for h in data.get("hits", [])], page, per_page)
+                        _parse(Video.from_api, data.get("hits")), page, per_page)
 
 
 def download_url(item: Image, size: Size) -> str:

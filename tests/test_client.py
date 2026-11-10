@@ -131,6 +131,11 @@ def test_key_from_environment(monkeypatch: pytest.MonkeyPatch, fake: Pixabay, sl
         PixabayClient()
 
 
+def test_a_malformed_hit_is_skipped(fake: Pixabay, sleeps: list[float]) -> None:
+    fake.reply = lambda r: Pixabay.ok(r, hits=[image_hit(1), {"id": "bad"}, "junk", image_hit(2)])
+    assert [h.id for h in client(fake, sleeps).search_images("cat").hits] == [1, 2]
+
+
 def test_exclude_people_filter(fake: Pixabay, sleeps: list[float]) -> None:
     fake.reply = lambda r: Pixabay.ok(r, hits=[image_hit(1, "cat, pet"), image_hit(2, "woman, cat"),
                                                  image_hit(3, "children, park")])
