@@ -155,6 +155,41 @@ def test_download_saves_from_pixabay_only(fake: Pixabay, sleeps: list[float], tm
         c.download(evil)
 
 
+
+def _redirect_to(location: str):  # type: ignore[no-untyped-def]
+    def reply(r: httpx.Request) -> httpx.Response:
+        if r.url.path.endswith("l1_1280.jpg"):
+            return httpx.Response(302, headers={"Location": location})
+        return Pixabay.ok(r)
+    return reply
+
+
+def test_download_refuses_a_redirect_off_pixabay(fake: Pixabay, sleeps: list[float]) -> None:
+    c = client(fake, sleeps)
+    img = c.search_images("cat").hits[0]
+    fake.reply = _redirect_to("http://169.254.169.254/latest")
+    with pytest.raises(ValueError):
+        c.download(img)
+    assert all(r.url.host in ("pixabay.com", "cdn.pixabay.com") for r in fake.requests)
+
+
+def test_download_follows_a_redirect_within_pixabay(fake: Pixabay, sleeps: list[float]) -> None:
+    c = client(fake, sleeps)
+    img = c.search_images("cat").hits[0]
+    fake.reply = _redirect_to("https://cdn.pixabay.com/photo/l1_final.jpg")
+    assert c.download(img) == b"\x89PNG-bytes"
+    assert fake.requests[-1].url.host == "cdn.pixabay.com"
+
+
+async def test_async_download_refuses_a_redirect_off_pixabay(fake: Pixabay) -> None:
+    async def asleep(_: float) -> None: ...
+    async with AsyncPixabayClient(KEY, transport=httpx.MockTransport(fake.handler), sleep=asleep) as c:
+        img = (await c.search_images("cat")).hits[0]
+        fake.reply = _redirect_to("https://evil.example/x.jpg")
+        with pytest.raises(ValueError):
+            await c.download(img)
+    assert all(r.url.host in ("pixabay.com", "cdn.pixabay.com") for r in fake.requests)
+
 def test_credit_lines() -> None:
     img = Image.from_api(image_hit(user="Alice"))
     assert img.credit == "Image by Alice from Pixabay"

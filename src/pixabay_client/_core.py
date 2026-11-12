@@ -198,9 +198,17 @@ def videos_result(data: dict[str, Any], page: int, per_page: int) -> SearchResul
                         _parse(Video.from_api, data.get("hits")), page, per_page)
 
 
+MAX_DOWNLOAD_REDIRECTS = 5
+
+
+def check_download_url(url: str | httpx.URL) -> httpx.URL:
+    """The URL, if it is https on one of Pixabay's own hosts; else ValueError. Checked before every hop."""
+    u = httpx.URL(str(url)) if url else httpx.URL("")
+    if u.scheme != "https" or u.host not in DOWNLOAD_HOSTS:
+        raise ValueError("Downloads come only from Pixabay's own hosts over https.")
+    return u
+
+
 def download_url(item: Image, size: Size) -> str:
     url = {"large": item.large, "webformat": item.webformat, "preview": item.preview}[size].url
-    host = httpx.URL(url).host if url else ""
-    if httpx.URL(url).scheme != "https" or host not in DOWNLOAD_HOSTS:
-        raise ValueError("Downloads come only from Pixabay's own hosts over https.")
-    return url
+    return str(check_download_url(url))

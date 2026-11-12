@@ -146,9 +146,15 @@ class PixabayClient(_Base):
     def download(self, image: Image, *, size: Size = "large", dest: str | Path | None = None) -> Any:
         """The picture's bytes, or with `dest` saved there (returns the Path). Pixabay forbids permanent
         hotlinking: download what you keep."""
-        url = _core.download_url(image, size)
+        url = httpx.URL(_core.download_url(image, size))
         try:
-            response = self._http.get(url)
+            for _ in range(_core.MAX_DOWNLOAD_REDIRECTS + 1):
+                response = self._http.get(url, follow_redirects=False)
+                if not response.is_redirect:
+                    break
+                url = _core.check_download_url(response.next_request.url if response.next_request else "")
+            else:
+                raise ServiceError("The download redirected too many times.")
             response.raise_for_status()
         except httpx.HTTPError as e:
             raise ServiceError(f"The download failed ({type(e).__name__}).") from None
@@ -247,9 +253,15 @@ class AsyncPixabayClient(_Base):
         return hits[0] if hits else _not_found()
 
     async def download(self, image: Image, *, size: Size = "large", dest: str | Path | None = None) -> Any:
-        url = _core.download_url(image, size)
+        url = httpx.URL(_core.download_url(image, size))
         try:
-            response = await self._http.get(url)
+            for _ in range(_core.MAX_DOWNLOAD_REDIRECTS + 1):
+                response = await self._http.get(url, follow_redirects=False)
+                if not response.is_redirect:
+                    break
+                url = _core.check_download_url(response.next_request.url if response.next_request else "")
+            else:
+                raise ServiceError("The download redirected too many times.")
             response.raise_for_status()
         except httpx.HTTPError as e:
             raise ServiceError(f"The download failed ({type(e).__name__}).") from None

@@ -8,7 +8,7 @@ Pixabay's API rules for you**:
 - **Rate limits:** reads `X-RateLimit-*` headers, waits when the window is used up, and retries a `429` after the
   reset time.
 - **No hotlinking:** Pixabay forbids permanent hotlinking. `download()` saves the picture for you, and only ever
-  fetches from Pixabay's own hosts.
+  fetches from Pixabay's own hosts, including after redirects.
 - **Credit:** `image.credit` / `image.credit_html` give the "where it's from" line Pixabay asks you to show.
 - **Your key stays private:** never in `repr`, error messages or logs (httpx's request log line is redacted).
 - **Safe by default:** `safesearch` is on unless you turn it off; optional `exclude_people=True` drops hits
